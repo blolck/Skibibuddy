@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
 public class Creature : MonoBehaviour
@@ -17,14 +18,20 @@ public class Creature : MonoBehaviour
     [Header("Ground Check")]
     public float creatureHeight = 2f;
     public LayerMask whatIsGround;
-    bool grounded;
+    protected bool grounded;
 
-    private Rigidbody rb;
-    private bool isRidden = false;
-    private PlayerController mountedPlayerController = null;
+    protected Rigidbody rb;
+    protected bool isRidden = false;
+    protected PlayerController mountedPlayerController = null;
 
     [Header("Riding Settings")]
     public float rideSpeedMultiplier = 1.5f;
+    public float mountCooldown = 1.0f; // Cooldown to prevent immediate remounting
+    private float lastUnmountTime = -100f;
+
+    [Header("Crash Settings")]
+    public float minCrashSpeed = 12f; // Speed required to trigger crash
+    private Vector3 lastFrameVelocity;
 
     // store original player speed values to restore on unmount
     private float origPlayerMinSpeed;
@@ -37,23 +44,25 @@ public class Creature : MonoBehaviour
     float horizontalInput;
     float verticalInput;
 
-    // Destruction settings
+   
     private Transform playerTransform;
-    private float destroyDistance = -1f; // -1 means disabled
+    private float destroyDistance = -1f; 
 
-    public void Init(Transform player, float distance)
+    public virtual void Init(Transform player, float distance)
     {
         playerTransform = player;
         destroyDistance = distance;
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+        
+        // Generic creature starts upright or however it is placed in scene
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         // Check for destruction
         if (destroyDistance > 0 && playerTransform != null && !isRidden)
@@ -67,17 +76,7 @@ public class Creature : MonoBehaviour
 
         if (isRidden && mountedPlayerController != null)
         {
-            //creature FOLLOW
-            Vector3 targetPos = mountedPlayerController.transform.position;
-            
-            float playerHalfHeight = mountedPlayerController.playerHeight * 0.5f;
-            targetPos.y -= playerHalfHeight; 
-
-            transform.position = targetPos;
-
-            Vector3 targetRot = mountedPlayerController.transform.eulerAngles;
-            transform.rotation = Quaternion.Euler(0, targetRot.y, 0);
-
+            FollowPlayer();
             return; 
         }
 
@@ -104,11 +103,26 @@ public class Creature : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    protected virtual void FollowPlayer()
+    {
+        //creature FOLLOW
+        Vector3 targetPos = mountedPlayerController.transform.position;
+        
+        float playerHalfHeight = mountedPlayerController.playerHeight * 0.5f;
+        targetPos.y -= playerHalfHeight; 
+
+        transform.position = targetPos;
+
+        Vector3 targetRot = mountedPlayerController.transform.eulerAngles;
+        // Generic: Sync Y with player, keep X/Z 0 (upright)
+        transform.rotation = Quaternion.Euler(0f, targetRot.y, 0f);
+    }
+
+    protected virtual void FixedUpdate()
     {
         if (isRidden)
         {
-           
+           CheckForCrash();
         }
         else
         {
@@ -116,31 +130,60 @@ public class Creature : MonoBehaviour
         }
     }
 
-    private void MyInput()
+    protected void CheckForCrash()
+    {
+        if (mountedPlayerController == null) return;
+        
+        Rigidbody playerRb = mountedPlayerController.GetComponent<Rigidbody>();
+        if (playerRb == null) return;
+
+        Vector3 currentVelocity = playerRb.velocity;
+        
+        // Check if we were moving fast enough in the last frame
+        if (lastFrameVelocity.magnitude > minCrashSpeed)
+        {
+            // Check if we stopped suddenly (collision)
+            // If speed drops to near zero instantly
+            if (currentVelocity.magnitude < 0.5f) 
+            {
+                Debug.Log("Crash detected! Speed dropped from " + lastFrameVelocity.magnitude + " to " + currentVelocity.magnitude);
+                PerformCrash();
+                return;
+            }
+        }
+        
+        lastFrameVelocity = currentVelocity;
+    }
+
+    protected void PerformCrash()
+    {
+        if (mountedPlayerController != null)
+        {
+            GameObject player = mountedPlayerController.gameObject;
+            UnmountPlayer(player);
+            Destroy(gameObject);
+        }
+    }
+
+    protected virtual void MyInput()
     {
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
     }
 
-    private void MoveAuto()
+    protected virtual void MoveAuto()
     {
-        // Move forward automatically (Z axis relative to self)
-        // Assuming creature faces forward or we just move in its forward direction
-        // Requirement: "Creature moves forward at constant speed... same as player not pressing keys"
-        // Player logic for no keys: rb.AddForce(orientation.forward * moveSpeed * 10f * 1f, ForceMode.Force);
+        // Generic forward movement
+        Vector3 flatForward = transform.forward;
         
         if (grounded)
-            rb.AddForce(transform.forward * moveSpeed * 3f, ForceMode.Force);
+            rb.AddForce(flatForward * moveSpeed * 3f, ForceMode.Force);
         else
-            rb.AddForce(transform.forward * moveSpeed * 3f * airMultiplier, ForceMode.Force);
+            rb.AddForce(flatForward * moveSpeed * 3f * airMultiplier, ForceMode.Force);
     }
 
-    private void MoveWithPlayer()
+    protected virtual void MoveWithPlayer()
     {
-        // Logic copied from PlayerController
-        
-        // Calculate movement direction
-        // Note: PlayerController uses 'orientation'. For Creature, Use its own transform.
         Vector3 moveDirectionX = transform.right * horizontalInput;
         Vector3 moveDirectionZ = transform.forward;
 
@@ -162,7 +205,7 @@ public class Creature : MonoBehaviour
             rb.AddForce(moveDirectionZ.normalized * moveSpeed * 10f * airMultiplier * zForceMultiplier, ForceMode.Force);
     }
 
-    private void SpeedControl()
+    protected virtual void SpeedControl()
     {
        
         Vector3 localVel = transform.InverseTransformDirection(rb.velocity);
@@ -193,7 +236,7 @@ public class Creature : MonoBehaviour
         rb.velocity = transform.TransformDirection(localVel);
     }
 // Apply speed boosts to the player's PlayerController while riding
-    private void ApplyRideEffects(PlayerController pc)
+    protected virtual void ApplyRideEffects(PlayerController pc)
     {
         // store originals
         origPlayerMinSpeed = pc.minSpeed;
@@ -232,22 +275,28 @@ public class Creature : MonoBehaviour
 
         if (player != null)
         {
+            // Check cooldown
+            if (Time.time < lastUnmountTime + mountCooldown) return;
+
+            bool isSwitching = false;
             // If the player is already riding another creature, unmount from it first
             if (player.currentMount != null && player.currentMount != this)
             {
                 player.currentMount.UnmountPlayer(player.gameObject);
+                isSwitching = true;
+                Debug.Log("Switching mounts");
             }
 
             // If not already ridden by this player (or anyone else), mount
             if (!isRidden)
             {
-                MountPlayer(player.gameObject);
+                MountPlayer(player.gameObject, isSwitching);
             }
         }
     }
 
     // MountPlayer positions the player and sets up the riding state
-    private void MountPlayer(GameObject player)
+    protected virtual void MountPlayer(GameObject player, bool isSwitching = false)
     {
         PlayerController pc = player.GetComponent<PlayerController>();
         if (pc == null) return;
@@ -264,14 +313,12 @@ public class Creature : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
         rb.isKinematic = true;
         rb.useGravity = false;
-        
-        // 【关键修复】直接关闭刚体的碰撞检测
-        // 这比 IgnoreCollision 更彻底，能防止任何形式的物理排斥（无限上升）
+ 
         rb.detectCollisions = false;
         
         // Change layer to Ignore Raycast (usually layer 2) to prevent infinite jump
         origLayer = gameObject.layer;
-        gameObject.layer = 2; // 2 is Ignore Raycast
+        gameObject.layer = 2; 
         
         // DO NOT Parent Creature to Player (Creature stays independent but follows in Update)
         // transform.SetParent(player.transform); 
@@ -284,15 +331,25 @@ public class Creature : MonoBehaviour
         targetPos.y -= playerHalfHeight; 
         
         transform.position = targetPos;
-        transform.rotation = Quaternion.Euler(0, player.transform.eulerAngles.y, 0);
+        // Generic: Keep X rotation at 0, sync Y with player
+        transform.rotation = Quaternion.Euler(0f, player.transform.eulerAngles.y, 0f);
 
         pc.SetRidingState(true, creatureHeight);
         
         // Move Player UP in world space so they don't snap into ground
-        player.transform.position += Vector3.up * creatureHeight;
+        if (!isSwitching)
+        {
+            player.transform.position += Vector3.up * creatureHeight;
+        }
 
         // 5. Apply stats (speed boost, etc.)
         ApplyRideEffects(pc);
+
+        // Initialize crash detection
+        if (pc.GetComponent<Rigidbody>() != null)
+        {
+            lastFrameVelocity = pc.GetComponent<Rigidbody>().velocity;
+        }
     }
 
     
@@ -330,5 +387,6 @@ public class Creature : MonoBehaviour
         
         // Stop ridden state
         isRidden = false;
+        lastUnmountTime = Time.time;
     }
 }

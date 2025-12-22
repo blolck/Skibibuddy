@@ -65,12 +65,10 @@ public class GenerateInfinity : MonoBehaviour
         {
             float updateTime = Time.realtimeSinceStartup;
 
-            // 3. 计算新的网格中心点（对齐到网格坐标）
-            // Mathf.Floor 是向下取整。这步操作把玩家的任意坐标变成了最近的网格整数坐标。
             int playerX= (int)(Mathf.Floor(player.transform.position.x/planeSize)*planeSize);
             int playerZ= (int)(Mathf.Floor(player.transform.position.z/planeSize)*planeSize);
             
-            // 4. 再次双重循环，扫描玩家周围的新区域
+            // 4. 扫描玩家周围的新区域
             for (int x = -halfTilesX; x <= halfTilesX; x++)
             {
                 for (int z = -halfTilesZ; z <= halfTilesZ; z++)
@@ -90,8 +88,7 @@ public class GenerateInfinity : MonoBehaviour
                     }
                     else
                     {
-                        // 有 -> 更新它的时间戳
-                        // 这表示这个地块依然在玩家视野范围内，是“活跃”的。
+                       
                         (tiles[tilename] as Tile).creationTime = updateTime;
                     }
                 }
@@ -101,7 +98,7 @@ public class GenerateInfinity : MonoBehaviour
             Hashtable newTerrains = new Hashtable();
             foreach (Tile tls in tiles.Values)
             {
-                // 7. 清理老地块：检查时间戳
+                // 清理老地块
                 if (tls.creationTime == updateTime)
                 {
                     // 仍然活跃的地块，保留

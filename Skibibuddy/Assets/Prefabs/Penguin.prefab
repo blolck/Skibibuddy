@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4626112563256121394}
   - component: {fileID: 4547510038716368633}
   - component: {fileID: 889972518904333115}
-  - component: {fileID: 1891775207124061577}
+  - component: {fileID: 6172568056223817378}
   m_Layer: 0
   m_Name: Penguin
   m_TagString: Untagged
@@ -136,7 +136,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &1891775207124061577
+--- !u!114 &6172568056223817378
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -145,7 +145,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5152175314765319983}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 333753e68cede7847bcf96e5a4a29c5c, type: 3}
+  m_Script: {fileID: 11500000, guid: dc02419d0bf27b84789e64fcd2a4fbde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 10
@@ -159,3 +159,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   rideSpeedMultiplier: 1.5
+  mountCooldown: 1
+  minCrashSpeed: 5

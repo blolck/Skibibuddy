@@ -6,6 +6,7 @@ public class PlayerCam : MonoBehaviour
 {
     public float sensX;
     public float sensY;
+    [SerializeField]public Avalanche avalanche;
 
     public Transform orientation;
 
@@ -16,6 +17,11 @@ public class PlayerCam : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        
+        if (avalanche == null)
+        {
+            avalanche = FindObjectOfType<Avalanche>();
+        }
     }
     private void Update()
     {
@@ -28,5 +34,15 @@ public class PlayerCam : MonoBehaviour
 
         transform.rotation = Quaternion.Euler(xRotation, yRotation, 0);
         orientation.rotation = Quaternion.Euler(0, yRotation, 0);
+        
+        if(avalanche != null && avalanche.isGameOver)
+        {
+            mouseVisible();
+        }
+    }
+    public void mouseVisible()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }

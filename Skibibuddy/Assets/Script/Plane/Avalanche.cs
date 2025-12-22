@@ -19,7 +19,7 @@ public class Avalanche : MonoBehaviour
     public string gameOverSceneName = "GameOver"; // Or use active scene to restart
     public GameObject gameOverPanel; // UI Panel to show
 
-    private bool isGameOver = false;
+    public bool isGameOver = false;
 
     void Start()
     {
@@ -61,6 +61,7 @@ public class Avalanche : MonoBehaviour
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
+            
         }
         
     }

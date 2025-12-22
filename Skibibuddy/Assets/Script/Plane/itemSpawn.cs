@@ -8,8 +8,10 @@ public class itemSpawn : MonoBehaviour
     public GameObject[] prefabs; 
     public int minCount = 1;  
     public int maxCount = 5;     
-    
-    [Tooltip("offset")]
+
+    [Header("Difficulty Progression")]
+    public int absoluteMaxCount = 4;
+    public float timeToReachMax = 20f;
     public float verticalOffset = -0.1f; 
     
     public float planeSize = 10f; 
@@ -26,11 +28,14 @@ public class itemSpawn : MonoBehaviour
         PlaneController pc = GetComponent<PlaneController>();
         if (pc == null)
         {
-
              return;
         }
 
-        int attemptCount = maxCount * 2; 
+        // Calculate dynamic max count based on game time
+        float progress = Mathf.Clamp01(Time.timeSinceLevelLoad / timeToReachMax);
+        int currentMaxCount = Mathf.RoundToInt(Mathf.Lerp(maxCount, absoluteMaxCount, progress));
+
+        int attemptCount = currentMaxCount * 2; 
 
         for (int i = 0; i < attemptCount; i++)
         {
@@ -66,7 +71,6 @@ public class itemSpawn : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     void Update()
     {
         
