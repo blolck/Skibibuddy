@@ -37,6 +37,7 @@ public class Creature : MonoBehaviour
     private float origPlayerMinSpeed;
     private float origPlayerMaxSpeed;
     private float origPlayerMaxNormalSpeed;
+    protected float origPlayerJumpForce; // Protected so subclasses can use if needed
     private float origCreatureMoveSpeed;
     private int origLayer; // Store original layer
     
@@ -155,7 +156,7 @@ public class Creature : MonoBehaviour
         lastFrameVelocity = currentVelocity;
     }
 
-    protected void PerformCrash()
+    protected virtual void PerformCrash()
     {
         if (mountedPlayerController != null)
         {
@@ -163,6 +164,12 @@ public class Creature : MonoBehaviour
             UnmountPlayer(player);
             Destroy(gameObject);
         }
+    }
+
+    // Returns true if the switch should proceed, false if it should be cancelled
+    public virtual bool HandleMountSwitch(Creature newMount)
+    {
+        return true;
     }
 
     protected virtual void MyInput()
@@ -242,6 +249,7 @@ public class Creature : MonoBehaviour
         origPlayerMinSpeed = pc.minSpeed;
         origPlayerMaxSpeed = pc.maxSpeed;
         origPlayerMaxNormalSpeed = pc.maxNormalSpeed;
+        origPlayerJumpForce = pc.jumpForce;
         origCreatureMoveSpeed = moveSpeed;
 
         // apply multiplier
@@ -282,6 +290,12 @@ public class Creature : MonoBehaviour
             // If the player is already riding another creature, unmount from it first
             if (player.currentMount != null && player.currentMount != this)
             {
+                // Ask current mount if we should switch
+                if (!player.currentMount.HandleMountSwitch(this)) 
+                {
+                    return; // Stop processing collision
+                }
+
                 player.currentMount.UnmountPlayer(player.gameObject);
                 isSwitching = true;
                 Debug.Log("Switching mounts");
@@ -363,6 +377,7 @@ public class Creature : MonoBehaviour
             mountedPlayerController.minSpeed = origPlayerMinSpeed;
             mountedPlayerController.maxSpeed = origPlayerMaxSpeed;
             mountedPlayerController.maxNormalSpeed = origPlayerMaxNormalSpeed;
+            mountedPlayerController.jumpForce = origPlayerJumpForce;
             
             // Restore Player Physics (Collider)
             mountedPlayerController.SetRidingState(false, 0);

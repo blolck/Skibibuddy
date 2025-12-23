@@ -5,11 +5,17 @@ using UnityEngine;
 public class GenerateCreature : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    public GameObject creaturePrefab;
+    [SerializeField] PlayerController player;
+    [SerializeField] GameObject creaturePrefab1;
+    [SerializeField] GameObject creaturePrefab2;
+    [SerializeField] Score scoreRef;
     public float spawnRange = 20f;
     public float spawnInterval = 5f; // Time between spawns
     public float spawnHeightOffset = 2f;
     public float destroyDistance = 150f; // Distance to destroy creature
+    
+    [Header("Score Thresholds")]
+    public float spawnSecondPrefabScore = 6000f;
 
     [Header("Ground Check")]
     public LayerMask whatIsGround;
@@ -18,7 +24,6 @@ public class GenerateCreature : MonoBehaviour
 
     private void Start()
     {
-        PlayerController player = FindObjectOfType<PlayerController>();
         if (player != null)
         {
             playerTransform = player.transform;
@@ -37,8 +42,30 @@ public class GenerateCreature : MonoBehaviour
 
     public void SpawnCreature()
     {
-        if (playerTransform == null || creaturePrefab == null) return;
+        if (playerTransform == null) return;
 
+        bool spawnSecondCreature = false;
+        if (scoreRef != null)
+        {
+            if(scoreRef.CurrentScore >= spawnSecondPrefabScore)
+            {
+                 spawnSecondCreature = true;
+            }
+        }
+
+        if (creaturePrefab1 != null)
+        {
+            SpawnOne(creaturePrefab1);
+        }
+
+        if (spawnSecondCreature && creaturePrefab2 != null)
+        {
+            SpawnOne(creaturePrefab2);
+        }
+    }
+
+    private void SpawnOne(GameObject prefab)
+    {
         // Calculate random position within range
         Vector2 randomCircle = Random.insideUnitCircle * spawnRange;
         Vector3 spawnPos = playerTransform.position + new Vector3(randomCircle.x, 0f, randomCircle.y);
@@ -53,7 +80,7 @@ public class GenerateCreature : MonoBehaviour
             spawnPos.y = playerTransform.position.y + spawnHeightOffset; // Fallback
         }
 
-        GameObject creatureObj = Instantiate(creaturePrefab, spawnPos, Quaternion.identity);
+        GameObject creatureObj = Instantiate(prefab, spawnPos, Quaternion.identity);
         
         // Initialize creature with destruction settings
         Creature creatureScript = creatureObj.GetComponent<Creature>();

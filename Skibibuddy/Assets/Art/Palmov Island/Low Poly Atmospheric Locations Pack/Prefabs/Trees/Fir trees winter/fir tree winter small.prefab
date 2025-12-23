@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4557392724269730721}
   - component: {fileID: 617212072660501508}
   - component: {fileID: 3419411162135261390}
-  - component: {fileID: 8328091540220422151}
+  - component: {fileID: 4627270527540614549}
   m_Layer: 0
   m_Name: fir tree winter small
   m_TagString: Untagged
@@ -84,8 +84,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &8328091540220422151
-BoxCollider:
+--- !u!136 &4627270527540614549
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -102,6 +102,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.5593931, y: 3.2017136, z: 0.6216664}
-  m_Center: {x: -0.006302923, y: 1.6008568, z: 0.072946995}
+  serializedVersion: 2
+  m_Radius: 0.2406697
+  m_Height: 2.711497
+  m_Direction: 1
+  m_Center: {x: 0.024988025, y: 1.3301736, z: 0.035532296}

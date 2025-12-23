@@ -125,9 +125,10 @@ MonoBehaviour:
   - {fileID: 6486319289619685857, guid: c19187e88ee1b3b4cb378248091db269, type: 3}
   - {fileID: 3779870450763190555, guid: 496ef76a50672664587b5a1305197cc2, type: 3}
   - {fileID: 7242661486165890894, guid: 05bacf5de38dd374a9eb1a0207ee424f, type: 3}
-  - {fileID: 919132149155446097, guid: 2b3141fad648c9743b31c8f9ff9abed2, type: 3}
   minCount: 1
   maxCount: 1
+  absoluteMaxCount: 15
+  timeToReachMax: 300
   verticalOffset: -0.2
   planeSize: 10
   itemNoiseScale: 0.1

@@ -16,6 +16,9 @@ public class Score : MonoBehaviour
     private float maxZ; 
     private float currentScore;
 
+    // Expose current score as read-only for other systems
+    public float CurrentScore { get { return currentScore; } }
+
     void Start()
     {
         if (player == null)

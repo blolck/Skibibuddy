@@ -29,8 +29,7 @@ public class TextUI : MonoBehaviour
         float speed = 0f;
         if (rb != null)
         {
-            Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-            speed = flatVel.magnitude;
+            speed = rb.velocity.z;
         }
 
         string textContent = "Speed: " + speed.ToString("F1");
