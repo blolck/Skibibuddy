@@ -32,7 +32,7 @@ public class Distance : MonoBehaviour
         if (player != null && avalanche != null && tmpText != null)
         {
             distance = player.transform.position.z - avalanche.transform.position.z;
-            tmpText.text = "Distance: " + distance.ToString("F0") + "m";
+            tmpText.text = " Distance to Avalanche: " + distance.ToString("F0") + "m";
         }
     }
 }

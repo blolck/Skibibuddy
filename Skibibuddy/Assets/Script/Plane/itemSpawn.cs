@@ -31,7 +31,7 @@ public class itemSpawn : MonoBehaviour
              return;
         }
 
-        // Calculate dynamic max count based on game time
+        // Calculate dynamic max count
         float progress = Mathf.Clamp01(Time.timeSinceLevelLoad / timeToReachMax);
         int currentMaxCount = Mathf.RoundToInt(Mathf.Lerp(maxCount, absoluteMaxCount, progress));
 
