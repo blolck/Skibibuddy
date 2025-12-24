@@ -7,18 +7,14 @@ public class Penguin : Creature
     protected override void Start()
     {
         base.Start();
-        // Ensure initial rotation is correct (lying down)
         transform.rotation = Quaternion.Euler(90f, transform.eulerAngles.y, 0f);
     }
 
     protected override void FollowPlayer()
     {
         if (mountedPlayerController == null) return;
-
-        // Call base to set position and generic rotation
         base.FollowPlayer();
 
-        // Override rotation to keep X at 90
         Vector3 targetRot = mountedPlayerController.transform.eulerAngles;
         transform.rotation = Quaternion.Euler(90f, targetRot.y, 0f);
     }
