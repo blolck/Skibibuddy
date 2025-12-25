@@ -28,6 +28,12 @@ public class PlayerController : MonoBehaviour
     public float minSpeed = 10f;
     public float maxSpeed = 30f;
     public float maxNormalSpeed = 20f;
+    
+    [Header("Acceleration Settings")]
+    public float initialSpeed = 20f;
+    public float acceleration = 0.5f; // How much maxNormalSpeed increases per second
+    public float absoluteMaxSpeed = 50f;   // The hard cap for maxNormalSpeed
+
     public Transform orientation;
     
     // Track the creature currently being ridden
@@ -54,6 +60,7 @@ public class PlayerController : MonoBehaviour
         }
 
         readyToJump = true;
+        maxNormalSpeed = initialSpeed;
     }
 
     public void SetRidingState(bool riding, float mountHeight)
@@ -76,6 +83,14 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        // Increase maxNormalSpeed over time
+        if (maxNormalSpeed < absoluteMaxSpeed)
+        {
+            maxNormalSpeed += acceleration * Time.deltaTime;
+            // Also increase moveSpeed proportionally if needed, or just let SpeedControl handle the cap
+            moveSpeed += (acceleration * 0.5f) * Time.deltaTime; 
+        }
+
         MyInput();
         SpeedControl();
         
@@ -136,6 +151,7 @@ public class PlayerController : MonoBehaviour
 
     private void SpeedControl()
     {
+        // 1. Component-based clamping (Local Space)
         Vector3 localVel = orientation.InverseTransformDirection(rb.velocity);
 
         // limit left right speed
@@ -147,20 +163,30 @@ public class PlayerController : MonoBehaviour
         //limit forward speed
         float currentMaxZSpeed = maxNormalSpeed; 
 
-        if (verticalInput > 0)
-        {
-            currentMaxZSpeed = maxSpeed;
-        }
-        else if (verticalInput < 0)
+        // Only use minSpeed when moving backwards
+        if (verticalInput < 0)
         {
             currentMaxZSpeed = minSpeed;
         }
+        
+        // When moving forward (verticalInput > 0) or idle, use maxNormalSpeed 
+        // which is dynamically increased in Update()
+
         if (localVel.z > currentMaxZSpeed)
         {
             localVel.z = currentMaxZSpeed;
         }
 
         rb.velocity = orientation.TransformDirection(localVel);
+
+        // 2. Magnitude-based clamping (World Space)
+        // Fix: Prevent diagonal acceleration (strafe jumping) by clamping total horizontal magnitude
+        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        if (flatVel.magnitude > maxNormalSpeed)
+        {
+            Vector3 limitedVel = flatVel.normalized * maxNormalSpeed;
+            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
+        }
     }
 
     private void Jump()

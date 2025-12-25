@@ -158,6 +158,7 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 1
+  creatureDeadAudio: {fileID: 8300000, guid: b2f97c77d8ae8ee4d91ba41c903dffb4, type: 3}
   rideSpeedMultiplier: 1.5
   mountCooldown: 1
   minCrashSpeed: 12

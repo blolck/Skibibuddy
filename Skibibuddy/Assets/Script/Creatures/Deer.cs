@@ -21,13 +21,18 @@ public class Deer : Creature
     protected override void ApplyRideEffects(PlayerController pc)
     {
         base.ApplyRideEffects(pc);
-        // Boost jump
+        
+        // Deer Speed Boost (High)
+        float speedMultiplier = 1.5f;
+
+        pc.moveSpeed *= speedMultiplier;       
+        pc.maxNormalSpeed *= speedMultiplier;  
+        pc.maxSpeed *= speedMultiplier;       
+
+        // Deer Jump Boost
+   
         pc.jumpForce *= 1.5f; 
         
-        // Boost speed
-        pc.maxSpeed *= 1.2f;
-        pc.maxNormalSpeed *= 1.2f;
-        moveSpeed *= 1.2f;
     }
 
     public override bool HandleMountSwitch(Creature newMount)

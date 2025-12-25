@@ -4,18 +4,16 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 public class RestartButton : MonoBehaviour
 {
-    [SerializeField] public itemSpawn itemSpawner;
     void Start()
     {
-        if(itemSpawner == null)
-        {
-            itemSpawner = FindObjectOfType<itemSpawn>();
-        }
+        
     }
-    public void Restart()
+    public void MainMenu()
     {
         SceneManager.LoadScene(0);
         Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
     public void Quit()
     {

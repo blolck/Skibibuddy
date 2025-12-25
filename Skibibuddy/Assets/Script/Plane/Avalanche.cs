@@ -13,6 +13,10 @@ public class Avalanche : MonoBehaviour
     public float acceleration = 0.5f;
     public float maxSpeed = 50f;
     
+    // Expose current speed so PlayerController can read it if needed, 
+    // or we can just let PlayerController handle its own acceleration.
+    public float CurrentSpeed { get { return currentSpeed; } }
+    
     private float currentSpeed;
 
     [Header("Game Over Settings")]

@@ -9,6 +9,7 @@ public class PlayerFire : MonoBehaviour
     public Transform muzzle; // The point where the raycast originates
     public Transform cameraTransform; // To determine recoil direction
     public Rigidbody playerRb; // To apply recoil force
+    public PlayerChainsaw playerChainsaw; // Reference to the chainsaw script
 
     [Header("Slug Settings (Left Click)")]
     public float slugRange = 100f;
@@ -21,6 +22,13 @@ public class PlayerFire : MonoBehaviour
     public int maxBuckshotAmmo = 5;
     private int currentBuckshotAmmo;
 
+    [Header("Audio Settings")]
+    public AudioSource audioSource;
+    public AudioClip fireSound;
+
+    [Header("UI References")]
+    public kills killsScript;
+
     // Expose ammo for UI
     public int CurrentBuckshotAmmo { get { return currentBuckshotAmmo; } }
 
@@ -28,15 +36,28 @@ public class PlayerFire : MonoBehaviour
     {
         currentBuckshotAmmo = maxBuckshotAmmo;
 
+        if (killsScript == null)
+            killsScript = FindObjectOfType<kills>();
+
         if (playerRb == null)
             playerRb = GetComponentInParent<Rigidbody>();
         
         if (cameraTransform == null)
             cameraTransform = Camera.main.transform;
+            
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
     {
+        // Weapon Switching: Press 1 to switch to Chainsaw
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            SwitchToChainsaw();
+            return; // Exit update to prevent firing on the same frame
+        }
+
         // Left Click: Slug Fire
         if (Input.GetButtonDown("Fire1"))
         {
@@ -52,9 +73,35 @@ public class PlayerFire : MonoBehaviour
         }
     }
 
+    void SwitchToChainsaw()
+    {
+        if (playerChainsaw != null)
+        {
+            playerChainsaw.enabled = true;
+            playerChainsaw.gameObject.SetActive(true);
+
+            this.enabled = false;
+            
+            // Only disable this gameObject if the scripts are on different objects
+            if (playerChainsaw.gameObject != this.gameObject)
+            {
+                this.gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            UnityEngine.Debug.LogError("PlayerChainsaw reference is not assigned in PlayerFire!");
+        }
+    }
+
     void FireSlug()
     {
         if (muzzle == null) return;
+
+        if (audioSource != null && fireSound != null)
+        {
+            audioSource.PlayOneShot(fireSound);
+        }
 
         RaycastHit hit;
         // Raycast from muzzle forward
@@ -63,6 +110,10 @@ public class PlayerFire : MonoBehaviour
             UnityEngine.Debug.Log("Slug hit: " + hit.collider.name);
             if (hit.collider.CompareTag(creatureTag))
             {
+                if (killsScript != null)
+                {
+                    killsScript.AddKill();
+                }
                 Destroy(hit.collider.gameObject);
             }
         }
@@ -74,6 +125,11 @@ public class PlayerFire : MonoBehaviour
         {
             UnityEngine.Debug.Log("Out of Buckshot Ammo!");
             return;
+        }
+
+        if (audioSource != null && fireSound != null)
+        {
+            audioSource.PlayOneShot(fireSound);
         }
 
         currentBuckshotAmmo--;

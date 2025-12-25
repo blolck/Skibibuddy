@@ -33,4 +33,17 @@ public class Penguin : Creature
         base.MountPlayer(player, isSwitching);
         transform.rotation = Quaternion.Euler(90f, player.transform.eulerAngles.y, 0f);
     }
+
+    protected override void ApplyRideEffects(PlayerController pc)
+    {
+        base.ApplyRideEffects(pc);
+        
+        // Penguin Speed Boost
+        float speedMultiplier = 1.2f;
+
+        pc.moveSpeed *= speedMultiplier;       
+        pc.maxNormalSpeed *= speedMultiplier;  
+        pc.maxSpeed *= speedMultiplier;        
+        
+    }
 }

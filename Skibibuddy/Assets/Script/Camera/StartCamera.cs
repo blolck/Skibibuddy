@@ -20,8 +20,12 @@ public class StartCamera : MonoBehaviour
     public bool activateFirstPersonCameraOnFinish = true; 
     
     [Header("Game Flow")]
+    public GameObject gameRoot; // Reference to the "Game" GameObject containing Player, HUD, etc.
     public Avalanche avalanche; 
     public PlayerController playerController; 
+    public GameObject crosshairUI; // Reference to the Crosshair Canvas/Image
+    public GameObject mainMenuCanvas; // Reference to the Main Menu Canvas
+    public GameObject hudCanvas; // Reference to the HUD GameObject
 
     private Camera thisCam;
 
@@ -29,6 +33,43 @@ public class StartCamera : MonoBehaviour
     {
         thisCam = GetComponent<Camera>();
         
+        // Ensure Game Root is inactive initially
+        if (gameRoot != null)
+            gameRoot.SetActive(false);
+
+        // Ensure Main Menu is active initially
+        if (mainMenuCanvas != null)
+            mainMenuCanvas.SetActive(true);
+    }
+
+    void Start()
+    {
+        // Unlock cursor for menu
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    public void OnStartGame()
+    {
+        if (mainMenuCanvas != null)
+            mainMenuCanvas.SetActive(false);
+
+        // Enable Game Root
+        if (gameRoot != null)
+            gameRoot.SetActive(true);
+
+        // Initialize references and disable them for the intro sequence
+        InitializeGameComponents();
+
+        // Lock cursor for game
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        StartCoroutine(CameraIntroSequence());
+    }
+
+    void InitializeGameComponents()
+    {
         // Auto-find Avalanche if not assigned
         if (avalanche == null)
             avalanche = FindObjectOfType<Avalanche>();
@@ -40,8 +81,6 @@ public class StartCamera : MonoBehaviour
         // Auto-find PlayerController if not assigned
         if (playerController == null && player != null)
             playerController = player.GetComponent<PlayerController>();
-        else if (playerController == null)
-            playerController = FindObjectOfType<PlayerController>();
 
         // Disable PlayerController immediately
         if (playerController != null)
@@ -54,11 +93,14 @@ public class StartCamera : MonoBehaviour
                 rb.freezeRotation = true;
             }
         }
-    }
 
-    void Start()
-    {
-        StartCoroutine(CameraIntroSequence());
+        // Disable Crosshair initially
+        if (crosshairUI != null)
+            crosshairUI.SetActive(false);
+
+        // Disable HUD initially
+        if (hudCanvas != null)
+            hudCanvas.SetActive(false);
     }
 
     IEnumerator CameraIntroSequence()
@@ -147,7 +189,19 @@ public class StartCamera : MonoBehaviour
             playerController.enabled = true;
         }
 
-        // 7) Reset Player Camera Rotation to face Z-forward
+        // 7) Enable Crosshair
+        if (crosshairUI != null)
+        {
+            crosshairUI.SetActive(true);
+        }
+
+        // 8) Enable HUD
+        if (hudCanvas != null)
+        {
+            hudCanvas.SetActive(true);
+        }
+
+        // 9) Reset Player Camera Rotation to face Z-forward
         if (firstPersonCamera != null)
         {
             PlayerCam pcCam = firstPersonCamera.GetComponent<PlayerCam>();
@@ -170,5 +224,11 @@ public class StartCamera : MonoBehaviour
                 if (thisCam != null) thisCam.enabled = false;
             }
         }
+
+        if (crosshairUI != null)
+            crosshairUI.SetActive(true);
+
+        if (hudCanvas != null)
+            hudCanvas.SetActive(true);
     }
 }

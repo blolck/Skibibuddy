@@ -18,6 +18,8 @@ public class Creature : MonoBehaviour
     [Header("Ground Check")]
     public float creatureHeight = 2f;
     public LayerMask whatIsGround;
+    [Header("Sound")]
+    public AudioClip creatureDeadAudio;
     protected bool grounded;
 
     protected Rigidbody rb;
@@ -25,7 +27,7 @@ public class Creature : MonoBehaviour
     protected PlayerController mountedPlayerController = null;
 
     [Header("Riding Settings")]
-    public float rideSpeedMultiplier = 1.5f;
+  
     public float mountCooldown = 1.0f; // Cooldown to prevent immediate remounting
     private float lastUnmountTime = -100f;
 
@@ -162,6 +164,10 @@ public class Creature : MonoBehaviour
         {
             GameObject player = mountedPlayerController.gameObject;
             UnmountPlayer(player);
+            if (creatureDeadAudio != null)
+            {
+                AudioSource.PlayClipAtPoint(creatureDeadAudio, transform.position);
+            }
             Destroy(gameObject);
         }
     }
@@ -252,13 +258,6 @@ public class Creature : MonoBehaviour
         origPlayerJumpForce = pc.jumpForce;
         origCreatureMoveSpeed = moveSpeed;
 
-        // apply multiplier
-        pc.minSpeed = pc.minSpeed * rideSpeedMultiplier;
-        pc.maxSpeed = pc.maxSpeed * rideSpeedMultiplier;
-        pc.maxNormalSpeed = pc.maxNormalSpeed * rideSpeedMultiplier;
-        
-        // Boost creature speed as well since it carries the player
-        moveSpeed = moveSpeed * rideSpeedMultiplier;
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -281,6 +280,7 @@ public class Creature : MonoBehaviour
             }
         }
 
+//switch cooldown
         if (player != null)
         {
             // Check cooldown
@@ -330,12 +330,10 @@ public class Creature : MonoBehaviour
  
         rb.detectCollisions = false;
         
-        // Change layer to Ignore Raycast (usually layer 2) to prevent infinite jump
+        // Change layer to Ignore Raycast to prevent infinite jump
         origLayer = gameObject.layer;
         gameObject.layer = 2; 
         
-        // DO NOT Parent Creature to Player (Creature stays independent but follows in Update)
-        // transform.SetParent(player.transform); 
         
         // 3. Position & Rotation
         // Initial placement
